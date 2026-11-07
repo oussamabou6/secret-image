@@ -76,4 +76,3 @@ Bits are written most-significant first, in R→G→B order (alpha is skipped). 
 ## License
 
 MIT, see [LICENSE](LICENSE).
-# secret-image
