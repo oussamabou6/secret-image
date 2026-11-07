@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="author" content="Boucetta Oussama">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>صورة سرّية · إخفاء الرسائل والملفات المشفّرة داخل الصور</title>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+  <style>
+    :root {
+      --bg: #eef1f6;
+      --surface: #fff;
+      --ink: #16223a;
+      --mute: #5a6a84;
+      --line: #d3dae6;
+      --acc: #2f5bea;
+      --accInk: #fff;
+      --hero: #13213d;
+      --heroInk: #f2f6ff;
+      --err: #b3261e;
+      --ok: #17734a;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    @media (prefers-color-scheme:dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0d1523;
+        --surface: #16223a;
+        --ink: #e6ecf7;
+        --mute: #94a2bb;
+        --line: #2a3a56;
+        --acc: #7b9bff;
+        --accInk: #0d1523;
+        --hero: #0a1120;
+        --heroInk: #e6ecf7;
+        --err: #ff8a80;
+        --ok: #6fdca4
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0d1523;
+      --surface: #16223a;
+      --ink: #e6ecf7;
+      --mute: #94a2bb;
+      --line: #2a3a56;
+      --acc: #7b9bff;
+      --accInk: #0d1523;
+      --hero: #0a1120;
+      --heroInk: #e6ecf7;
+      --err: #ff8a80;
+      --ok: #6fdca4
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: env(safe-area-inset-top, 0px)
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 400 16px/1.8 "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+      color: inherit
+    }
+
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 18px
+    }
+
+    nav {
+      background: var(--hero);
+      color: var(--heroInk)
+    }
+
+    nav .wrap {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      overflow-x: auto;
+      white-space: nowrap
+    }
+
+    nav b {
+      margin-inline-end: auto;
+      font-weight: 700
+    }
+
+    nav a {
+      color: inherit;
+      text-decoration: none;
+      opacity: .85;
+      font-size: .95rem
+    }
+
+    nav a:hover {
+      opacity: 1
+    }
+
+    .hero {
+      background: var(--hero);
+      color: var(--heroInk);
+      padding: 36px 0 52px
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      line-height: 1.3;
+      margin: 0 0 10px
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 56ch;
+      opacity: .85
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px
+    }
+
+    .badges span {
+      border: 1px solid rgba(255, 255, 255, .28);
+      border-radius: 99px;
+      padding: 2px 12px;
+      font-size: .82rem
+    }
+
+    section {
+      padding: 36px 0
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin: 0 0 16px
+    }
+
+    .tool {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-top: -30px;
+      padding: 22px 20px
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--line);
+      margin-bottom: 6px
+    }
+
+    .tab {
+      flex: 1;
+      background: none;
+      border: 0;
+      padding: 10px 6px;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--mute);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px
+    }
+
+    .tab[aria-selected=true] {
+      color: var(--ink);
+      border-color: var(--acc)
+    }
+
+    .panel[hidden],
+    [hidden] {
+      display: none !important
+    }
+
+    label.l {
+      display: block;
+      font-weight: 500;
+      margin: 18px 0 6px
+    }
+
+    .drop {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 100px;
+      border: 1.5px dashed var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 12px;
+      color: var(--mute);
+      overflow: hidden;
+      position: relative;
+      background: var(--bg)
+    }
+
+    .drop:hover,
+    .drop:focus-within {
+      border-color: var(--acc)
+    }
+
+    .drop input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px
+    }
+
+    .drop img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 6px
+    }
+
+    .modes {
+      display: flex;
+      gap: 18px;
+      margin: 18px 0 8px;
+      flex-wrap: wrap
+    }
+
+    .modes label {
+      cursor: pointer
+    }
+
+    textarea,
+    input[type=password] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg);
+      padding: 10px 12px
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--acc);
+      outline-offset: 2px
+    }
+
+    .cap {
+      font-size: .85rem;
+      color: var(--mute);
+      margin: 6px 0 0
+    }
+
+    .go {
+      width: 100%;
+      margin-top: 20px;
+      background: var(--acc);
+      color: var(--accInk);
+      border: 0;
+      border-radius: 8px;
+      padding: 12px;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .go:disabled {
+      opacity: .55;
+      cursor: wait
+    }
+
+    .msg {
+      margin: 14px 0 0;
+      min-height: 1.6em;
+      font-size: .95rem
+    }
+
+    .msg.err {
+      color: var(--err)
+    }
+
+    .msg.ok {
+      color: var(--ok)
+    }
+
+    .out {
+      margin-top: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: var(--bg);
+      border-inline-start: 4px solid var(--acc);
+      padding: 12px 14px;
+      border-radius: 4px
+    }
+
+    .dl {
+      margin-top: 10px;
+      background: none;
+      border: 1.5px solid var(--acc);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 500;
+      cursor: pointer
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      counter-reset: s
+    }
+
+    .steps li {
+      counter-increment: s;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px
+    }
+
+    .steps li::before {
+      content: counter(s);
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--acc);
+      color: var(--accInk);
+      font-weight: 700;
+      margin-bottom: 6px
+    }
+
+    .steps b {
+      display: block
+    }
+
+    .steps span {
+      color: var(--mute);
+      font-size: .92rem
+    }
+
+    details {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-bottom: 10px
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 700
+    }
+
+    details>div {
+      padding: 0 16px 14px;
+      color: var(--ink)
+    }
+
+    details p {
+      margin: .4em 0
+    }
+
+    code,
+    pre {
+      direction: ltr;
+      unicode-bidi: isolate;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: .88rem
+    }
+
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      overflow-x: auto;
+      margin: 8px 0
+    }
+
+    .tw {
+      overflow-x: auto
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: .9rem
+    }
+
+    td,
+    th {
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      text-align: start
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 22px 0 30px;
+      color: var(--mute);
+      font-size: .88rem
+    }
+
+    nav {
+      position: sticky;
+      top: env(safe-area-inset-top, 0px);
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: color-mix(in srgb, var(--hero) 82%, transparent)
+    }
+
+    nav a {
+      position: relative;
+      transition: opacity .2s
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      bottom: -4px;
+      height: 2px;
+      background: currentColor;
+      transform: scaleX(0);
+      transition: transform .3s
+    }
+
+    nav a:hover::after {
+      transform: scaleX(1)
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      padding: 64px 0 96px;
+      background: radial-gradient(120% 90% at 80% 0%, color-mix(in srgb, var(--acc) 38%, var(--hero)), var(--hero) 62%)
+    }
+
+    .hero .wrap {
+      position: relative;
+      z-index: 1
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .06) 1px, transparent 1px);
+      background-size: 38px 38px;
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
+      mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
+      animation: grid 18s linear infinite
+    }
+
+    @keyframes grid {
+      to {
+        background-position: 38px 38px
+      }
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(64px);
+      opacity: .55;
+      z-index: 0;
+      animation: float 14s ease-in-out infinite
+    }
+
+    .o1 {
+      width: 300px;
+      height: 300px;
+      background: #2f5bea;
+      top: -90px;
+      inset-inline-start: -70px
+    }
+
+    .o2 {
+      width: 250px;
+      height: 250px;
+      background: #8a5cf6;
+      bottom: -100px;
+      inset-inline-end: 10%;
+      animation-delay: -5s
+    }
+
+    .o3 {
+      width: 190px;
+      height: 190px;
+      background: #14b8a6;
+      top: 28%;
+      inset-inline-end: -60px;
+      animation-delay: -9s
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1)
+      }
+
+      50% {
+        transform: translate(34px, -28px) scale(1.14)
+      }
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 6vw, 3.1rem);
+      background: linear-gradient(90deg, #fff, #a9c0ff, #d3b8ff, #fff);
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: up .8s both, shine 7s linear infinite
+    }
+
+    @keyframes shine {
+      to {
+        background-position: -250% 0
+      }
+    }
+
+    @keyframes up {
+      from {
+        opacity: 0;
+        transform: translateY(24px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: scale(.3)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes rot {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    @keyframes sweep {
+
+      0%,
+      60% {
+        transform: translateX(-130%)
+      }
+
+      100% {
+        transform: translateX(130%)
+      }
+    }
+
+    .hero p {
+      animation: up .8s .15s both;
+      font-size: 1.05rem
+    }
+
+    .badges {
+      animation: up .8s .3s both
+    }
+
+    .badges span {
+      backdrop-filter: blur(6px);
+      background: rgba(255, 255, 255, .07);
+      transition: transform .25s, background .25s
+    }
+
+    .badges span:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, .16)
+    }
+
+    .px {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 26px;
+      direction: ltr;
+      max-width: 520px;
+      animation: up .8s .45s both
+    }
+
+    .px i {
+      --d: 0ms;
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, .13);
+      animation: pop .5s var(--d) both
+    }
+
+    .px i.on {
+      background: #7b9bff;
+      box-shadow: 0 0 12px rgba(123, 155, 255, .7)
+    }
+
+    .px i.f {
+      animation: pop .5s var(--d) both, flip 2.6s calc(var(--d) + .8s) ease-in-out infinite
+    }
+
+    @keyframes flip {
+
+      0%,
+      65%,
+      100% {
+        background: #7b9bff;
+        transform: none
+      }
+
+      82% {
+        background: #14b8a6;
+        box-shadow: 0 0 18px #14b8a6;
+        transform: scale(1.4) rotate(8deg)
+      }
+    }
+
+    .tool {
+      margin-top: -48px;
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 30px 70px -28px rgba(20, 40, 110, .55);
+      padding: 26px 22px;
+      animation: up .8s .2s both
+    }
+
+    @property --a {
+      syntax: '<angle>';
+      inherits: false;
+      initial-value: 0deg
+    }
+
+    .tool::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 21px;
+      padding: 2px;
+      background: conic-gradient(from var(--a), transparent 0 55%, var(--acc), #8a5cf6, transparent 92%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+      pointer-events: none;
+      animation: spin 7s linear infinite
+    }
+
+    @keyframes spin {
+      to {
+        --a: 360deg
+      }
+    }
+
+    .panel {
+      animation: fade .45s
+    }
+
+    .tab {
+      transition: color .25s, border-color .25s
+    }
+
+    .tab:hover {
+      color: var(--ink)
+    }
+
+    .drop {
+      transition: transform .25s, border-color .25s, background .25s
+    }
+
+    .drop:hover {
+      transform: translateY(-2px);
+      border-color: var(--acc);
+      background: color-mix(in srgb, var(--acc) 8%, var(--bg))
+    }
+
+    .drop img {
+      animation: pop .5s both
+    }
+
+    textarea,
+    input[type=password] {
+      transition: border-color .2s, box-shadow .2s
+    }
+
+    textarea:focus,
+    input[type=password]:focus {
+      border-color: var(--acc);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 22%, transparent);
+      outline: 0
+    }
+
+    .go {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      background: linear-gradient(90deg, #2f5bea, #7c4dff);
+      transition: transform .2s, box-shadow .2s
+    }
+
+    .go:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -10px #5b5bf0
+    }
+
+    .go:active:not(:disabled) {
+      transform: none
+    }
+
+    .go::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .35) 50%, transparent 70%);
+      animation: sweep 3.6s ease-in-out infinite;
+      pointer-events: none
+    }
+
+    .go:disabled::before {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, .45);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: rot .7s linear infinite;
+      margin-inline-end: 8px;
+      vertical-align: -2px
+    }
+
+    .dl {
+      transition: transform .2s, background .2s, color .2s;
+      animation: pop .45s both
+    }
+
+    .dl:hover {
+      transform: translateY(-2px);
+      background: var(--acc);
+      color: var(--accInk)
+    }
+
+    .msg:not(:empty) {
+      animation: up .4s both
+    }
+
+    .msg.ok::before {
+      content: '\2713 ';
+      font-weight: 700
+    }
+
+    .msg.err::before {
+      content: '\2715 ';
+      font-weight: 700
+    }
+
+    .out {
+      animation: up .5s both
+    }
+
+    .steps li {
+      transition: transform .3s, box-shadow .3s, border-color .3s
+    }
+
+    .steps li:hover {
+      transform: translateY(-7px);
+      border-color: var(--acc);
+      box-shadow: 0 18px 36px -18px color-mix(in srgb, var(--acc) 70%, transparent)
+    }
+
+    .steps li::before {
+      background: linear-gradient(135deg, #2f5bea, #8a5cf6);
+      color: #fff;
+      box-shadow: 0 6px 14px -4px #5b5bf0
+    }
+
+    h2 {
+      position: relative;
+      padding-inline-start: 16px
+    }
+
+    h2::before {
+      content: '';
+      position: absolute;
+      inset-inline-start: 0;
+      top: .2em;
+      bottom: .2em;
+      width: 5px;
+      border-radius: 3px;
+      background: linear-gradient(#2f5bea, #8a5cf6)
+    }
+
+    details {
+      transition: border-color .3s, box-shadow .3s
+    }
+
+    details:hover {
+      border-color: color-mix(in srgb, var(--acc) 55%, var(--line))
+    }
+
+    details[open] {
+      border-color: var(--acc);
+      box-shadow: 0 14px 30px -20px var(--acc)
+    }
+
+    summary {
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px
+    }
+
+    summary::-webkit-details-marker {
+      display: none
+    }
+
+    summary::after {
+      content: '+';
+      font-size: 1.4rem;
+      line-height: 1;
+      color: var(--acc);
+      transition: transform .35s
+    }
+
+    details[open] summary::after {
+      transform: rotate(135deg)
+    }
+
+    details[open]>div {
+      animation: fade .5s
+    }
+
+    .rv {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .7s, transform .7s
+    }
+
+    .rv.in {
+      opacity: 1;
+      transform: none
+    }
+
+    .by {
+      margin-top: 20px !important;
+      font-size: .95rem;
+      opacity: .95
+    }
+
+    .by a,
+    footer a {
+      font-weight: 700;
+      text-decoration: none;
+      border-bottom: 1px solid currentColor;
+      transition: opacity .2s
+    }
+
+    .by a {
+      color: #cfe0ff
+    }
+
+    footer a {
+      color: var(--acc)
+    }
+
+    .by a:hover,
+    footer a:hover {
+      opacity: .75
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+      *,
+      ::before,
+      ::after {
+        animation: none !important;
+        transition: none !important
+      }
+
+      .rv {
+        opacity: 1;
+        transform: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div class="wrap"><b>🔐 صورة سرّية</b><a href="#tool">الأداة</a><a href="#steps">الخطوات</a><a
+        href="#docs">الكتالوج</a></div>
+  </nav>
+  <header class="hero"><i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i>
+    <div class="wrap">
+      <h1>أخفِ رسالتك أو ملفك داخل صورة، بتشفير حقيقي</h1>
+      <p>ارفع صورة JPG، واكتب رسالة أو أرفق ملفًا (نص، Word، Excel، PDF)، وضع كلمة سر. تحصل على صورة تبدو عادية، ولا
+        يفتحها إلا من يملك كلمة السر.</p>
+      <div class="badges"><span>AES-256-GCM</span><span>PBKDF2 · SHA-256</span><span>LSB</span><span>يعمل داخل متصفحك
+          فقط</span></div>
+      <div class="px" id="px" aria-hidden="true"></div>
+      <p class="by">تطوير: <a href="https://portfolio.formeevent.com" target="_blank" rel="noopener">Boucetta
+          Oussama</a></p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="tool" id="tool">
+      <div class="tabs" role="tablist"><button class="tab" id="tabH" role="tab"
+          aria-selected="true">إخفاء</button><button class="tab" id="tabR" role="tab"
+          aria-selected="false">استخراج</button></div>
+
+      <div class="panel" id="pH">
+        <label class="l">1) صورة الغلاف (JPG فقط)</label>
+        <label class="drop"><input type="file" id="fH" accept=".jpg,.jpeg,image/jpeg"><span id="phH">اضغط لاختيار صورة
+            JPG</span></label>
+        <p class="cap" id="capH"></p>
+        <div class="modes" role="radiogroup">
+          <label><input type="radio" name="mode" value="text" checked> رسالة نصية</label>
+          <label><input type="radio" name="mode" value="file"> ملف (txt, Word, Excel, PDF)</label>
+        </div>
+        <textarea id="mH" dir="auto" placeholder="اكتب الرسالة هنا"></textarea>
+        <label class="drop" id="dropF" hidden><input type="file" id="fF" accept=".txt,.doc,.docx,.xls,.xlsx,.pdf"><span
+            id="phF">اضغط لاختيار الملف (txt, Word, Excel, PDF)</span></label>
+        <label class="l" for="p1">2) كلمة السر</label>
+        <input type="password" id="p1" autocomplete="new-password">
+        <button class="go" id="goH" type="button">3) شفّر وأخفِ</button>
+        <p class="msg" id="sH" role="status"></p>
+        <button class="dl" id="dl" type="button" hidden>نزّل الصورة الجديدة (PNG)</button>
+      </div>
+
+      <div class="panel" id="pR" hidden>
+        <label class="l">1) الصورة المحفوظة (PNG)</label>
+        <label class="drop"><input type="file" id="fR" accept="image/png"><span id="phR">اضغط لاختيار
+            الصورة</span></label>
+        <label class="l" for="p2">2) كلمة السر</label>
+        <input type="password" id="p2" autocomplete="current-password">
+        <button class="go" id="goR" type="button">3) استخرج</button>
+        <p class="msg" id="sR" role="status"></p>
+        <div class="out" id="out" dir="auto" hidden></div>
+        <button class="dl" id="dlR" type="button" hidden></button>
+      </div>
+    </div>
+
+    <section id="steps">
+      <h2>كيف تستخدم الموقع؟</h2>
+      <ol class="steps">
+        <li><b>اختر صورة JPG</b><span>أي صورة عادية. كلما كانت أكبر، زادت المساحة المتاحة للإخفاء.</span></li>
+        <li><b>أدخل الرسالة أو الملف</b><span>نص مباشر، أو ملف txt أو Word أو Excel أو PDF بشرط ألا يتجاوز السعة
+            المعروضة.</span></li>
+        <li><b>ضع كلمة سر قوية</b><span>12 حرفًا فأكثر. لا توجد طريقة لاستعادتها إذا نسيتها.</span></li>
+        <li><b>نزّل صورة PNG</b><span>هذه هي الصورة الجديدة. لا تحوّلها إلى JPG ولا تُرسلها عبر تطبيق يضغط الصور.</span>
+        </li>
+        <li><b>استخرج لاحقًا</b><span>افتح تبويب «استخراج» في هذا الموقع، أو استخدم سكريبت بايثون، وأدخل الصورة وكلمة
+            السر.</span></li>
+      </ol>
+    </section>
+
+    <section id="docs">
+      <h2>كتالوج: كيف تعمل الأداة؟</h2>
+      <details open>
+        <summary>ما الفرق بين التشفير والإخفاء؟</summary>
+        <div>
+          <p><b>التشفير</b> يجعل الرسالة غير مفهومة لمن لا يملك المفتاح، لكن الجميع يعرف أن هناك رسالة مشفّرة.</p>
+          <p><b>الإخفاء (Steganography)</b> يخفي وجود الرسالة نفسه داخل وسيط عادي كالصورة. هذه الأداة تجمع الاثنين:
+            تشفّر أولًا، ثم تخفي الناتج.</p>
+        </div>
+      </details>
+      <details>
+        <summary>كيف تعمل طريقة LSB؟</summary>
+        <div>
+          <p>كل بكسل في الصورة له ثلاث قيم لونية (أحمر وأخضر وأزرق)، وكل قيمة من 0 إلى 255، أي 8 بتات. البت الأخير هو
+            الأقل تأثيرًا، فتغييره يغيّر اللون بمقدار 1 من 255 ولا تلاحظه العين.</p>
+          <p>نستبدل هذا البت الأخير في كل قيمة لونية بجزء من بياناتنا:</p>
+          <pre>قيمة اللون الأصلية: 1100101<b>0</b>
+البت المراد إخفاؤه:   1
+القيمة الجديدة:       1100101<b>1</b></pre>
+          <p>كل بكسل يحمل 3 بتات، فالصورة التي أبعادها 1000×1000 تتسع لنحو 375 ألف بايت.</p>
+        </div>
+      </details>
+      <details>
+        <summary>التشفير: AES-256-GCM</summary>
+        <div>
+          <p>AES خوارزمية تشفير متماثل يعتمدها العالم كله، والرقم 256 هو طول المفتاح بالبت. وضع <b>GCM</b> يضيف شيئين:
+            يشفّر البيانات، ويحسب «وسم توثيق» من 16 بايت.</p>
+          <p>عند الاستخراج يُتحقق من الوسم. إذا كانت كلمة السر خاطئة أو تغيّر بت واحد في البيانات، يفشل التحقق وتظهر
+            رسالة خطأ بدل نص مشوّه. هذا هو «التحقق من سلامة البيانات».</p>
+        </div>
+      </details>
+      <details>
+        <summary>اشتقاق المفتاح: PBKDF2 مع SHA-256</summary>
+        <div>
+          <p>كلمة السر قصيرة وغير مناسبة لتكون مفتاحًا مباشرًا. لذلك تُمرَّر مع <b>salt</b> عشوائي (16 بايت) في PBKDF2
+            التي تكرر دالة SHA-256 مرات عديدة (هنا 210,000 مرة) لتنتج مفتاحًا من 32 بايت.</p>
+          <p>التكرار يجعل تخمين كلمات السر أبطأ بكثير، والـ salt يمنع استخدام جداول جاهزة. لكل صورة salt مختلف.</p>
+        </div>
+      </details>
+      <details>
+        <summary>بنية البيانات داخل الصورة (الصيغة STG2)</summary>
+        <div>
+          <p>تُكتب البيانات بترتيب البكسلات من أول الصورة، وبتّات كل بايت من الأعلى إلى الأدنى، وبالقنوات R ثم G ثم B
+            (بدون قناة الشفافية).</p>
+          <div class="tw">
+            <table>
+              <tr>
+                <th>الموضع (بايت)</th>
+                <th>الحجم</th>
+                <th>المحتوى</th>
+              </tr>
+              <tr>
+                <td>0</td>
+                <td>4</td>
+                <td>الشارة <code>STG2</code></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>16</td>
+                <td>salt</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>12</td>
+                <td>IV (nonce) لـ AES-GCM</td>
+              </tr>
+              <tr>
+                <td>32</td>
+                <td>4</td>
+                <td>طول النص المشفّر (Big-endian)</td>
+              </tr>
+              <tr>
+                <td>36</td>
+                <td>n</td>
+                <td>النص المشفّر + وسم التوثيق (16 بايت)</td>
+              </tr>
+            </table>
+          </div>
+          <p>النص قبل التشفير: بايت نوع (<code>0</code> نص، <code>1</code> ملف). للملف يليه طول الاسم (2 بايت) ثم الاسم
+            UTF-8 ثم محتوى الملف. البيانات الإضافية المصاحبة (AAD) هي الشارة <code>STG2</code>.</p>
+          <p>بما أن الصيغة موثّقة هنا، يمكن لأي برنامج تنفيذها. السكربت بايثون المرفق ينفّذها بالضبط، فما يخفيه الموقع
+            يستخرجه السكربت والعكس.</p>
+        </div>
+      </details>
+      <details>
+        <summary>لماذا الناتج PNG وليس JPG؟</summary>
+        <div>
+          <p>JPG ضغط «مع فقدان»: عند حفظه يُعاد حساب قيم الألوان وتضيع البتات الأخيرة التي خبّأنا فيها البيانات. PNG ضغط
+            «بدون فقدان» فتبقى كل بكسل كما كتبناه. لذلك الإدخال JPG والإخراج PNG.</p>
+          <p>إذا أرسلت الصورة عبر واتساب أو تيليجرام كصورة عادية فقد تُضغط وتضيع الرسالة. أرسلها كـ «ملف/مستند».</p>
+        </div>
+      </details>
+      <details>
+        <summary>الحدود ونصائح الأمان</summary>
+        <div>
+          <p>• التشفير قوي، لكن أمانك يساوي قوة كلمة السر. اختر عبارة طويلة.</p>
+          <p>• LSB قابلة للكشف بأدوات التحليل الإحصائي (Steganalysis) إذا ملأت الصورة بالكامل. استخدم جزءًا صغيرًا من
+            السعة.</p>
+          <p>• حتى لو اكتُشف وجود البيانات، لا يمكن قراءتها دون كلمة السر.</p>
+          <p>• لا تستخدم الأداة لإخفاء محتوى غير قانوني.</p>
+        </div>
+      </details>
+      <details>
+        <summary>أسئلة شائعة</summary>
+        <div>
+          <p><b>هل أستخرج الرسالة من أي موقع في العالم؟</b> تستخرجها من هذا الموقع من أي جهاز أو بلد، أو من السكربت
+            بايثون. المواقع الأخرى لا تعرف هذه الصيغة ما لم تنفّذها.</p>
+          <p><b>هل ترفع الصورة إلى خادم؟</b> لا. كل العمليات تجري في متصفحك.</p>
+          <p><b>نسيت كلمة السر؟</b> لا يمكن استعادة البيانات.</p>
+          <p><b>سكربت بايثون:</b></p>
+          <pre>pip install pillow cryptography
+python secret_image.py hide photo.jpg out.png --file report.pdf
+python secret_image.py reveal out.png</pre>
+        </div>
+      </details>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap">صورة سرّية · تطوير <a href="https://portfolio.formeevent.com" target="_blank"
+        rel="noopener">Boucetta Oussama</a> · كل المعالجة تتم محليًا في متصفحك ولا يُرسل شيء إلى أي خادم.</div>
+  </footer>
+
+  <script>
+    const $ = id => document.getElementById(id), enc = new TextEncoder(), dec = new TextDecoder();
+    const MAGIC = [0x53, 0x54, 0x47, 0x32], HDR = 36, ITER = 210000;
+    let cover = null, outBlob = null, found = null, capBytes = 0;
+    const fmt = n => n < 1024 ? n + " بايت" : n < 1048576 ? (n / 1024).toFixed(1) + " ك.ب" : (n / 1048576).toFixed(1) + " م.ب";
+    const say = (id, t, c) => { const e = $(id); e.textContent = t || ""; e.className = "msg " + (c || "") };
+    const safe = n => (n || "file").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_");
+    function tab(h) { $("pH").hidden = !h; $("pR").hidden = h; $("tabH").setAttribute("aria-selected", h); $("tabR").setAttribute("aria-selected", !h) }
+    $("tabH").onclick = () => tab(true); $("tabR").onclick = () => tab(false);
+    document.querySelectorAll("[name=mode]").forEach(r => r.onchange = () => { const f = r.value === "file" && r.checked; if (r.checked) { $("mH").hidden = f; $("dropF").hidden = !f } });
+
+    const load = f => new Promise((res, rej) => { const u = URL.createObjectURL(f), i = new Image(); i.onload = () => res({ i, u }); i.onerror = rej; i.src = u });
+    const toCanvas = i => { const c = document.createElement("canvas"); c.width = i.naturalWidth; c.height = i.naturalHeight; const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(i, 0, 0); return { c, x } };
+    function prev(id, u) { const p = $(id); p.textContent = ""; const m = document.createElement("img"); m.src = u; m.alt = ""; p.appendChild(m) }
+
+    $("fH").onchange = async e => {
+      const f = e.target.files[0]; cover = null; capBytes = 0; $("capH").textContent = ""; $("dl").hidden = true; say("sH");
+      if (!f) return;
+      if (!/\.jpe?g$/i.test(f.name) || (f.type && f.type !== "image/jpeg")) { e.target.value = ""; $("phH").textContent = "اضغط لاختيار صورة JPG"; return say("sH", "الملف يجب أن يكون JPG.", "err") }
+      try { const { i, u } = await load(f); cover = i; prev("phH", u); capBytes = Math.max(0, ((i.naturalWidth * i.naturalHeight * 3) >> 3) - HDR - 16 - 64); $("capH").textContent = "السعة القصوى للمحتوى: " + fmt(capBytes) } catch { say("sH", "تعذّر فتح الصورة.", "err") }
+    };
+    $("fF").onchange = e => { const f = e.target.files[0]; $("phF").textContent = f ? f.name + " · " + fmt(f.size) : "اضغط لاختيار الملف (txt, Word, Excel, PDF)" };
+    $("fR").onchange = async e => {
+      const f = e.target.files[0]; say("sR"); $("out").hidden = true; $("dlR").hidden = true; if (!f) return;
+      if (f.type === "image/jpeg") { e.target.value = ""; return say("sR", "اختر ملف PNG الذي نزّلته من الموقع. صيغة JPG تُتلف البيانات المخفية.", "err") }
+      try { const { u } = await load(f); prev("phR", u) } catch { say("sR", "تعذّر فتح الصورة.", "err") }
+    };
+
+    async function deriveKey(pw, salt) {
+      const m = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveKey"]);
+      return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: ITER, hash: "SHA-256" }, m, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+    }
+    function writeBytes(d, bytes) { let k = 0; for (const v of bytes) for (let b = 7; b >= 0; b--, k++) { const i = ((k / 3) | 0) * 4 + k % 3; d[i] = (d[i] & 254) | ((v >> b) & 1) } }
+    function readBytes(d, n, off = 0) { const o = new Uint8Array(n); let k = off * 8; for (let j = 0; j < n; j++) { let v = 0; for (let b = 0; b < 8; b++, k++)v = (v << 1) | (d[((k / 3) | 0) * 4 + k % 3] & 1); o[j] = v } return o }
+    function pack(kind, name, bytes) {
+      const nb = enc.encode(name || "").slice(0, 255), out = new Uint8Array(1 + (kind ? 2 + nb.length : 0) + bytes.length);
+      out[0] = kind; let o = 1; if (kind) { out[1] = 0; out[2] = nb.length; out.set(nb, 3); o = 3 + nb.length } out.set(bytes, o); return out
+    }
+    function unpack(p) {
+      if (p[0] === 0) return { kind: 0, bytes: p.slice(1) };
+      if (p[0] !== 1) throw 0; const n = (p[1] << 8) | p[2]; return { kind: 1, name: dec.decode(p.slice(3, 3 + n)), bytes: p.slice(3 + n) }
+    }
+    async function save(name, blob) {
+      let d = null; try { d = await claude.use("downloads") } catch { }
+      if (d) { try { await d.save({ filename: name, data: blob }) } catch { } return }
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click()
+    }
+
+    $("goH").onclick = async () => {
+      say("sH"); $("dl").hidden = true;
+      const fileMode = document.querySelector("[name=mode]:checked").value === "file", pw = $("p1").value;
+      if (!cover) return say("sH", "اختر صورة JPG أولًا.", "err");
+      let plain;
+      if (fileMode) { const f = $("fF").files[0]; if (!f) return say("sH", "اختر الملف المراد إخفاؤه.", "err"); if (!/\.(txt|docx?|xlsx?|pdf)$/i.test(f.name)) return say("sH", "الصيغ المدعومة: txt, doc, docx, xls, xlsx, pdf", "err"); plain = pack(1, safe(f.name), new Uint8Array(await f.arrayBuffer())) }
+      else { const t = $("mH").value; if (!t) return say("sH", "اكتب الرسالة أولًا.", "err"); plain = pack(0, "", enc.encode(t)) }
+      if (!pw) return say("sH", "أدخل كلمة السر.", "err");
+      if (plain.length + 16 + HDR > ((cover.naturalWidth * cover.naturalHeight * 3) >> 3)) return say("sH", "المحتوى أكبر من سعة الصورة. اختر صورة أكبر أو محتوى أصغر.", "err");
+      const btn = $("goH"); btn.disabled = true; say("sH", "جارٍ التشفير والإخفاء…");
+      try {
+        const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveKey(pw, salt);
+        const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: new Uint8Array(MAGIC) }, key, plain));
+        const { c, x } = toCanvas(cover), id = x.getImageData(0, 0, c.width, c.height);
+        const len = new Uint8Array(4); new DataView(len.buffer).setUint32(0, ct.length);
+        const pay = new Uint8Array(HDR + ct.length); pay.set(MAGIC, 0); pay.set(salt, 4); pay.set(iv, 20); pay.set(len, 32); pay.set(ct, HDR);
+        writeBytes(id.data, pay); x.putImageData(id, 0, 0);
+        outBlob = await new Promise(r => c.toBlob(r, "image/png"));
+        const vi = await load(outBlob), vd = toCanvas(vi.i).x.getImageData(0, 0, c.width, c.height).data, back = readBytes(vd, pay.length);
+        if (back.some((b, j) => b !== pay[j])) { outBlob = null; return say("sH", "متصفحك يعدّل بكسلات الصورة (حماية البصمة أو الخصوصية)، فلن تُستخرج الرسالة لاحقًا. عطّل هذه الحماية لهذا الموقع، أو جرّب Chrome/Chromium، أو استخدم سكريبت بايثون.", "err") }
+        say("sH", "تمت العملية. نزّل صورة PNG ولا تحوّلها إلى JPG.", "ok"); $("dl").hidden = false;
+      } catch { say("sH", "حدث خطأ أثناء المعالجة.", "err") } finally { btn.disabled = false }
+    };
+    $("dl").onclick = () => outBlob && save("secret-image.png", outBlob);
+
+    $("goR").onclick = async () => {
+      say("sR"); $("out").hidden = true; $("dlR").hidden = true;
+      const f = $("fR").files[0], pw = $("p2").value;
+      if (!f) return say("sR", "اختر الصورة أولًا.", "err");
+      if (!pw) return say("sR", "أدخل كلمة السر.", "err");
+      const btn = $("goR"); btn.disabled = true; say("sR", "جارٍ الاستخراج…");
+      try {
+        const { i } = await load(f), { c, x } = toCanvas(i), d = x.getImageData(0, 0, c.width, c.height).data, cap = (c.width * c.height * 3) >> 3;
+        if (cap < HDR) return say("sR", "لا توجد بيانات مخفية في هذه الصورة.", "err");
+        const h = readBytes(d, HDR);
+        if (MAGIC.some((v, j) => h[j] !== v)) return say("sR", "لا توجد بيانات مخفية في هذه الصورة، أو أنها تالفة.", "err");
+        const n = new DataView(h.buffer).getUint32(32);
+        if (n < 17 || HDR + n > cap) return say("sR", "البيانات تالفة.", "err");
+        let p;
+        try { const key = await deriveKey(pw, h.slice(4, 20)); p = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: h.slice(20, 32), additionalData: new Uint8Array(MAGIC) }, key, readBytes(d, n, HDR))) }
+        catch { return say("sR", "كلمة السر خاطئة، أو أن البيانات تعرّضت للتعديل.", "err") }
+        const r = unpack(p); say("sR", "تم التحقق من كلمة السر وسلامة البيانات.", "ok");
+        if (r.kind === 0) { $("out").textContent = dec.decode(r.bytes); $("out").hidden = false }
+        else { const nm = safe(r.name); found = { nm, blob: new Blob([r.bytes]) }; $("dlR").textContent = "نزّل الملف: " + nm + " (" + fmt(r.bytes.length) + ")"; $("dlR").hidden = false }
+      } catch { say("sR", "تعذّر استخراج البيانات.", "err") } finally { btn.disabled = false }
+    };
+    $("dlR").onclick = () => found && save(found.nm, found.blob);
+    (() => {
+      const px = $('px'); for (let i = 0; i < 40; i++) { const c = document.createElement('i'); c.style.setProperty('--d', i * 28 + 'ms'); if (Math.random() < .5) c.className = 'on'; if (i % 7 === 3) c.classList.add('f'); px.appendChild(c) }
+      if (!('IntersectionObserver' in window)) return; const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }), { threshold: .12 });
+      document.querySelectorAll('.steps li,details,#steps h2,#docs h2').forEach((el, i) => { el.classList.add('rv'); el.style.transitionDelay = (i % 5) * 70 + 'ms'; io.observe(el) })
+    })();
+  </script>
+</body>
+
+</html>
